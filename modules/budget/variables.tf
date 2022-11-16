@@ -22,6 +22,17 @@ variable "billing_account" {
 variable "projects" {
   description = "The project ids to include in this budget. If empty budget will include all projects"
   type        = list(string)
+  default     = []
+}
+
+variable "project_numbers" {
+  description = <<EOF
+    The project numbers to include in this budget. If empty budget will include all projects.
+    Specifying this variable instead of `projects` bypasses retrieving project numbers using data source.
+    Variable `projects` has precedence over this variable
+  EOF
+  type        = list(string)
+  default     = []
 }
 
 variable "amount" {
