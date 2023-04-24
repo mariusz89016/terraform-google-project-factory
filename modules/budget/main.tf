@@ -15,26 +15,24 @@
  */
 
 locals {
-  project_name     = length(var.projects) == 0 ? "All Projects" : var.projects[0]
+  project_name     = (length(var.projects) == 0 && length(var.project_numbers) == 0) ? "All Projects" : coalesce(try(var.projects[0], null), try(var.project_numbers[0], null))
   display_name     = var.display_name == null ? "Budget For ${local.project_name}" : var.display_name
   all_updates_rule = var.alert_pubsub_topic == null && length(var.monitoring_notification_channels) == 0 ? [] : ["1"]
   custom_period    = var.calendar_period == "CUSTOM" ? [1] : []
   start_date       = length(local.custom_period) != 0 ? split("-", var.custom_period_start_date) : null
   end_date         = length(local.custom_period) != 0 ? split("-", var.custom_period_end_date) : null
 
-  projects = length(var.projects) == 0 ? null : [
-    for project in data.google_project.project :
-    "projects/${project.number}"
-  ]
-  services = var.services == null ? null : [
+  projects_from_numbers = length(var.project_numbers) == 0 ? null : [for number in var.project_numbers : number]
+  projects_from_names   = length(var.projects) == 0 ? null : [for project in data.google_project.project : project.number]
+  projects              = [for number in coalesce(local.projects_from_names, local.projects_from_numbers): "projects/${number}"]
+  services              = var.services == null ? null : [
     for id in var.services :
     "services/${id}"
   ]
 }
 
 data "google_project" "project" {
-  depends_on = [var.projects]
-  count      = length(var.projects)
+  count      = length(var.projects) > 0 && var.create_budget ? length(var.projects) : 0
   project_id = element(var.projects, count.index)
 }
 

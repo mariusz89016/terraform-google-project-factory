@@ -93,6 +93,7 @@ module "budget" {
   source        = "./modules/budget"
   create_budget = var.budget_amount != null
 
+  project_numbers                  = [module.project-factory.project_number]
   projects                         = [module.project-factory.project_id]
   billing_account                  = var.billing_account
   amount                           = var.budget_amount
